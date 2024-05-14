@@ -4,7 +4,7 @@ import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
 import BackgroundVideo from '@/components/BackgroundVideo';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Input,Button } from "@rneui/base";
-import { Link ,useRouter} from "expo-router";
+import { Link ,useRouter,useFocusEffect} from "expo-router";
 export default function App() {
   return (
     <Suspense fallback={<Text>Loading...</Text>}>
@@ -66,7 +66,7 @@ function LoginScreen() {
         // Redirigir al usuario a la página principal
         router.push('/(tabs)');
       } else {
-        // Las credenciales son incorrectas o el usuario ya ha iniciado sesión anteriormente
+        // Las credenciales son incorrectas
         console.log("Credenciales incorrectas");
         // Puedes mostrar un mensaje de error al usuario
       }
@@ -74,7 +74,22 @@ function LoginScreen() {
       console.error("Error al ejecutar la consulta:", error);
     }
   };
- 
+
+  const refreshData = async () => {
+    try {
+      const result = await db.getAllAsync("SELECT * FROM users");
+      console.log("Datos actualizados:", result);
+      // Aquí puedes actualizar el estado de tu componente con los datos obtenidos
+    } catch (error) {
+      console.error("Error al obtener los datos actualizados:", error);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshData();
+    }, [])
+  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(10px)', paddingTop:20 }}>
