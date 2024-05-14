@@ -1,9 +1,10 @@
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState,useEffect } from "react";
 import { Text} from "react-native";
 import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
 import BackgroundVideo from '@/components/BackgroundVideo';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Input,Button } from "@rneui/base";
+import { Link ,useRouter} from "expo-router";
 export default function App() {
   return (
     <Suspense fallback={<Text>Loading...</Text>}>
@@ -22,10 +23,33 @@ function LoginScreen() {
   const db = useSQLiteContext();
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    checkSession();
+  }, []);
+
+  const checkSession = async () => {
+    try {
+      const result = await db.getAllAsync(
+        "SELECT * FROM users WHERE sesion = 1"
+      );
+
+      if (result.length > 0) {
+        // El usuario ya ha iniciado sesión anteriormente
+        console.log("Sesión activa");
+        // Redirigir al usuario a la página principal
+        router.push('/(tabs)');
+      }
+    } catch (error) {
+      console.error("Error al verificar la sesión:", error);
+    }
+  };
+
   const handleLogin = async () => {
     try {
       const result = await db.getAllAsync(
-        "SELECT * FROM users WHERE telefono = ? AND password = ? AND secion = 0",
+        "SELECT * FROM users WHERE telefono = ? AND password = ? AND sesion = 0",
         [phoneNumber, password]
       );
 
@@ -35,21 +59,22 @@ function LoginScreen() {
 
         // Actualizar el campo "secion" a 1 para indicar que el usuario ha iniciado sesión
         await db.execAsync(
-          "UPDATE users SET secion = 1 WHERE telefono = ?",
+          "UPDATE users SET sesion = 1 WHERE telefono = ?",
           [phoneNumber]
         );
 
-        // Aquí puedes redirigir al usuario a la pantalla principal o realizar otras acciones
+        // Redirigir al usuario a la página principal
+        router.push('/(tabs)');
       } else {
         // Las credenciales son incorrectas o el usuario ya ha iniciado sesión anteriormente
-        console.log("Credenciales incorrectas o sesión ya iniciada");
+        console.log("Credenciales incorrectas");
         // Puedes mostrar un mensaje de error al usuario
       }
     } catch (error) {
       console.error("Error al ejecutar la consulta:", error);
-      // Manejo de errores en caso de que ocurra algún problema con la consulta
     }
   };
+ 
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(10px)', paddingTop:20 }}>
@@ -86,9 +111,11 @@ function LoginScreen() {
           marginVertical: 10,
         }}
         titleStyle={{ fontWeight: 'bold' }}
+        onPress={handleLogin}
       />
       <Text style={{ color: '#ffffff', textAlign: 'center', marginTop: 10, fontSize:15 }}>
-        ¿No tienes una cuenta? <Text style={{ color: 'red' }}>Regístrate</Text>
+        ¿No tienes una cuenta? 
+        <Link href="/registro" style={{ color: 'blue' }}> Regístrate</Link>
       </Text>
     </SafeAreaView>
   );
