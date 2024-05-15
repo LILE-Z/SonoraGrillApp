@@ -14,10 +14,12 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         headerShown: false,
       }}
+      initialRouteName="menu"
     >
       <Tabs.Screen
         name="index"
         options={{
+          href: null,
           title: "Home",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
@@ -31,6 +33,7 @@ export default function TabLayout() {
         name="explore"
         options={{
           title: "Explore",
+          href: null,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? "code-slash" : "code-slash-outline"}
@@ -42,6 +45,18 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="menu"
+        options={{
+          title: "Menu",
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "menu" : "menu-outline"}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="categoria"
         options={{
           href: null,
         }}
