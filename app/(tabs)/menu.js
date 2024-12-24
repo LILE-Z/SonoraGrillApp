@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StyleSheet, Text, View, Animated, Dimensions, FlatList, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Animated, Dimensions, FlatList, Image, TouchableOpacity, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
@@ -29,6 +29,7 @@ const ESPACIO = 10;
 const ESPACIO_LATERAL = (width - ESPACIO_CONTENEDOR) / 2;
 const ALTURA = height * 0.5;
 
+//NAVEGACION
 function Backdrop({ scrollX }) {
   const backgroundImages = imagenes.map((imagen, index) => {
     const inputRange = [(index - 1) * ESPACIO_CONTENEDOR, index * ESPACIO_CONTENEDOR, (index + 1) * ESPACIO_CONTENEDOR];
@@ -65,7 +66,7 @@ function Backdrop({ scrollX }) {
 
 export default function Menu() {
   const router = useRouter();
- 
+  const navigation = useNavigation();
   const scrollX = useRef(new Animated.Value(0)).current;
 
   const handleCategoryPress = (categoria) => {
@@ -80,10 +81,13 @@ export default function Menu() {
     >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <Text style={styles.title}>Menú</Text>
+          <Pressable onPress={() => navigation.openDrawer()}>
+                      <Text style={styles.title}>Menú</Text>
+          </Pressable>
           <Image
             source={require('@/assets/images/sonora-grill-logo.png')}
             style={styles.logo}
+            
           />
         </View>
         <Backdrop scrollX={scrollX} />

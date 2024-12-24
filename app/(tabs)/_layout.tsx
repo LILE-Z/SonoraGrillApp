@@ -4,6 +4,7 @@ import React from "react";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { Tab } from "@rneui/base";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -16,33 +17,6 @@ export default function TabLayout() {
       }}
       initialRouteName="menu"
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          href: null,
-          title: "Home",
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name={focused ? "home" : "home-outline"}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Explore",
-          href: null,
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name={focused ? "code-slash" : "code-slash-outline"}
-              color={color}
-            />
-          ),
-        }}
-      />
-
       <Tabs.Screen
         name="menu"
         options={{
@@ -57,6 +31,37 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="categoria"
+        options={{
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="orden"
+        options={{
+          title: "Orden",
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "cart" : "cart-outline"}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="user"
+        options={{
+          title: "User",
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "person" : "person-outline"}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="producto"
         options={{
           href: null,
         }}

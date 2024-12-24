@@ -1,154 +1,169 @@
-import React, { useRef } from 'react';
+import React, { Suspense, useState } from 'react';
+import { Text, Input, Button, Alert } from '@rneui/base';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StyleSheet, Text, View, Animated, Dimensions, FlatList, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StatusBar } from 'expo-status-bar';
+import BackgroundVideo from '@/components/BackgroundVideo';
+import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
+import { useRouter } from 'expo-router';
+import { View, StyleSheet } from 'react-native';
 
-
-
-
-const imagenes = [
-  "https://sonoragrill.com.mx/nuestro-menu/assets/content/icon-alimentos.png",
-  "https://sonoragrill.com.mx/nuestro-menu/assets/content/icon-bebidas.png",
-  "https://sonoragrill.com.mx/nuestro-menu/assets/content/icon-postres.png",
-  "https://sonoragrill.com.mx/nuestro-menu/assets/content/icon-alimentos.png",
-  "https://images.otstatic.com/prod1/48485721/2/large.jpg",
-  "https://primesteakclub.com.mx/menu/assets/content/corte.jpg"
-];
-
-{/* */}
-
-
-const { width, height } = Dimensions.get('window');
-
-// Tamaño del contenedor
-const ESPACIO_CONTENEDOR = width * 0.8;
-const ESPACIO = 10;
-const ESPACIO_LATERAL = (width - ESPACIO_CONTENEDOR) / 2;
-const ALTURA_BACKDROP = height * 0.5;
-
-function Backdrop({ scrollX }) {
+export default function App() {
   return (
-    <View
-      style={[
-        {
-          position: 'absolute',
-          height: ALTURA_BACKDROP,
-          top: 0,
-          width: width,
-        },
-        StyleSheet.absoluteFillObject,
-      ]}
-    >
-      {imagenes.map((imagen, index) => {
-        const inputRange = [
-          (index - 1) * ESPACIO_CONTENEDOR,
-          index * ESPACIO_CONTENEDOR,
-          (index + 1) * ESPACIO_CONTENEDOR,
-        ];
-
-        const opacity = scrollX.interpolate({
-          inputRange,
-          outputRange: [0, 1, 0],
-        });
-
-        return (
-          <Animated.Image
-            key={index}
-            source={{ uri: imagen }}
-            style={[
-              { width: width, height: ALTURA_BACKDROP, opacity },
-              StyleSheet.absoluteFillObject,
-            ]}
-          />
-        );
-      })}
-      <LinearGradient
-        colors={['transparent', 'white']}
-        style={{
-          width,
-          height: ALTURA_BACKDROP,
-          position: 'absolute',
-          bottom: 0,
-        }}
-      />
-    </View>
+    <Suspense fallback={<Text>Loading...</Text>}>
+      <SQLiteProvider
+        databaseName="mydb.db"
+        assetSource={{ assetId: require("../assets/mydb.db") }}
+        useSuspense
+      >
+        <Registro />
+      </SQLiteProvider>
+    </Suspense>
   );
 }
+function Registro() {
+  const db = useSQLiteContext();
+  const [nombre, setNombre] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [direccion, setDireccion] = useState('');
+  const router = useRouter();
 
-export default function Menu() {
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const handleSubmit = async () => {
+    // Validar los campos antes de enviar el formulario
+    if (nombre.trim().length < 5) {
+      alert('El nombre debe tener al menos 5 letras');
+      return;
+    }
 
+    if (telefono.trim().length !== 10) {
+      alert('El número de teléfono debe tener 10 dígitos');
+      return;
+    }
+
+    if (password.trim().length < 5) {
+      alert('La contraseña debe tener al menos 5 caracteres');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (direccion.trim().length < 15) {
+      alert('La dirección debe tener al menos 15 caracteres');
+      return;
+    }
+
+    try {
+      // Verificar si el número de teléfono ya existe en la base de datos
+      const existingUser = await db.getAllAsync(
+        'SELECT * FROM users WHERE telefono = ?',
+        [telefono]
+      );
+
+      if (existingUser.length > 0) {
+        alert('El número de teléfono ya está registrado');
+        return;
+      }
+
+      // Insertar los datos del usuario en la base de datos
+      await db.runAsync(
+        'INSERT INTO users (nombre, telefono, password, direccion, sesion) VALUES (?, ?, ?, ?, ?)',
+        [nombre, telefono, password, direccion, 0]
+      );
+
+      alert('Registro exitoso');
+
+      // Obtener los datos actualizados de la base de datos
+      const result = await db.getAllAsync("SELECT * FROM users");
+      console.log("Datos actualizados:", result);
+
+      setTimeout(() => {
+        console.log('Registro exitoso');
+        router.push('/');
+      }, 1000);
+
+      // Aquí puedes redirigir al usuario a la página de inicio de sesión o realizar otras acciones
+    } catch (error) {
+      console.error('Error al registrar usuario:', error);
+    }
+  };
   return (
-    <SafeAreaView style={styles.container}>
-      <Backdrop scrollX={scrollX} />
-      <Text style={{ fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginTop: 20 }}>
-        Menu
-      </Text>
-      <Animated.FlatList
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: true }
-        )}
-        data={imagenes}
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingTop: 200,
-          paddingHorizontal: ESPACIO_LATERAL,
-        }}
-        decelerationRate={0}
-        snapToInterval={ESPACIO_CONTENEDOR}
-        scrollEventThrottle={16}
-        keyExtractor={(item) => item}
-        renderItem={({ item, index }) => {
-          const inputRange = [
-            (index - 1) * ESPACIO_CONTENEDOR,
-            index * ESPACIO_CONTENEDOR,
-            (index + 1) * ESPACIO_CONTENEDOR,
-          ];
-          const outputRange = [0, -50, 0];
-          const translateY = scrollX.interpolate({
-            inputRange,
-            outputRange,
-            extrapolate: 'clamp',
-          });
-
-          return (
-            <View style={{ width: ESPACIO_CONTENEDOR }}>
-              <Animated.View
-                style={{
-                  marginHorizontal: ESPACIO,
-                  padding: ESPACIO,
-                  borderRadius: 34,
-                  backgroundColor: 'white',
-                  alignItems: 'center',
-                  transform: [{ translateY }],
-                }}
-              >
-                <Image source={{ uri: item }} style={styles.posterImage} />
-                <Text style={{ fontWeight: 'bold', fontSize: 26 }}>Título</Text>
-              </Animated.View>
-            </View>
-          );
-        }}
-      />
+    <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <BackgroundVideo source={require('@/assets/Videos/pasion-carne.mp4')} />
+      <View style={styles.formContainer}>
+        <Text style={styles.title}>Registro</Text>
+        <Input
+          placeholder="Nombre"
+          leftIcon={{ name: 'user', type: 'font-awesome' }}
+          value={nombre}
+          onChangeText={setNombre}
+          inputContainerStyle={styles.inputContainer}
+          inputStyle={styles.inputText}
+        />
+        <Input
+          placeholder="Número de teléfono"
+          leftIcon={{ name: 'phone', type: 'font-awesome' }}
+          value={telefono}
+          onChangeText={setTelefono}
+          keyboardType="phone-pad"
+          inputContainerStyle={styles.inputContainer}
+          inputStyle={styles.inputText}
+        />
+        <Input
+          placeholder="Contraseña"
+          leftIcon={{ name: 'lock', type: 'font-awesome' }}
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+          inputContainerStyle={styles.inputContainer}
+          inputStyle={styles.inputText}
+        />
+        <Input
+          placeholder="Confirmar contraseña"
+          leftIcon={{ name: 'lock', type: 'font-awesome' }}
+          secureTextEntry
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          inputContainerStyle={styles.inputContainer}
+          inputStyle={styles.inputText}
+        />
+        <Input
+          placeholder="Dirección"
+          leftIcon={{ name: 'map-marker', type: 'font-awesome' }}
+          value={direccion}
+          onChangeText={setDireccion}
+          inputContainerStyle={styles.inputContainer}
+          inputStyle={styles.inputText}
+        />
+        <Button title="Registrarse" onPress={handleSubmit} />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
+  formContainer: {
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
   },
-  posterImage: {
-    width: '100%',
-    height: ESPACIO_CONTENEDOR * 1.2,
-    resizeMode: 'cover',
-    borderRadius: 24,
-    margin: 0,
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 5,
     marginBottom: 10,
+    paddingLeft: 10,
+  },
+  inputText: {
+    color: 'black',
   },
 });

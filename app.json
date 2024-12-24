@@ -11,7 +11,6 @@
       "image": "./assets/images/sonora-grill-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
-      
     },
     "ios": {
       "supportsTablet": true
@@ -20,7 +19,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ethanzzz.ProyectoFinal"
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +32,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "09cd69c6-ae85-4bf7-9505-3e8c8de55c6d"
+      }
     }
   }
 }
