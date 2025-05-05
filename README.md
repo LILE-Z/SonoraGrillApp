@@ -1,4 +1,4 @@
-# SonoraGrillApp
+# SonoraGrillApp 🥩🔥
 
 SonoraGrillApp is a conceptual application designed for a well-known restaurant in Mexico. This personal project simulates the functionalities of a modern restaurant app, including a shopping cart, login system, and an attractive interface with animations.
 
